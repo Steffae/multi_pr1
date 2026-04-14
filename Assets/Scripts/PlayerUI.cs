@@ -9,43 +9,81 @@ public class PlayerUI : NetworkBehaviour
 
     private PlayerShooting _playerShooting;
     private PlayerNetwork _playerNetwork;
-    private float _respawnTimer;
     private bool _isDead;
 
     private void Awake()
     {
-        _playerShooting = GetComponent<PlayerShooting>();
-        _playerNetwork = GetComponent<PlayerNetwork>();
+        // Используем GetComponentInParent, так как UI на дочернем объекте
+        _playerShooting = GetComponentInParent<PlayerShooting>();
+        _playerNetwork = GetComponentInParent<PlayerNetwork>();
+
+        Debug.Log($"[PlayerUI] Awake - Shooting: {_playerShooting != null}, Network: {_playerNetwork != null}");
     }
 
     public override void OnNetworkSpawn()
     {
+        Debug.Log($"[PlayerUI] OnNetworkSpawn - IsOwner: {IsOwner}, OwnerClientId: {OwnerClientId}");
+
+        // Скрываем UI для чужих игроков
         if (!IsOwner)
         {
-            // Скрываем UI для чужих игроков
             gameObject.SetActive(false);
             return;
         }
 
         // Подписываемся на изменения
-        _playerShooting.CurrentAmmo.OnValueChanged += OnAmmoChanged;
-        _playerNetwork.IsAlive.OnValueChanged += OnIsAliveChanged;
+        if (_playerShooting != null)
+        {
+            _playerShooting.CurrentAmmo.OnValueChanged += OnAmmoChanged;
+            Debug.Log($"[PlayerUI] Subscribed to Ammo changes, current value: {_playerShooting.CurrentAmmo.Value}");
+        }
+        else
+        {
+            Debug.LogError("[PlayerUI] PlayerShooting is null!");
+        }
 
-        // Начальные значения
-        OnAmmoChanged(0, _playerShooting.CurrentAmmo.Value);
-        OnIsAliveChanged(true, _playerNetwork.IsAlive.Value);
+        if (_playerNetwork != null)
+        {
+            _playerNetwork.IsAlive.OnValueChanged += OnIsAliveChanged;
+            OnIsAliveChanged(true, _playerNetwork.IsAlive.Value);
+        }
+
+        // Задержка для синхронизации NetworkVariable
+        StartCoroutine(InitializeUIWithDelay());
+    }
+
+    private System.Collections.IEnumerator InitializeUIWithDelay()
+    {
+        yield return null;
+        yield return null;
+
+        Debug.Log($"[PlayerUI] Delayed init - Ammo value: {(_playerShooting != null ? _playerShooting.CurrentAmmo.Value : -1)}");
+
+        if (_playerShooting != null)
+        {
+            OnAmmoChanged(0, _playerShooting.CurrentAmmo.Value);
+        }
     }
 
     public override void OnNetworkDespawn()
     {
         if (!IsOwner) return;
 
-        _playerShooting.CurrentAmmo.OnValueChanged -= OnAmmoChanged;
-        _playerNetwork.IsAlive.OnValueChanged -= OnIsAliveChanged;
+        if (_playerShooting != null)
+        {
+            _playerShooting.CurrentAmmo.OnValueChanged -= OnAmmoChanged;
+        }
+
+        if (_playerNetwork != null)
+        {
+            _playerNetwork.IsAlive.OnValueChanged -= OnIsAliveChanged;
+        }
     }
 
     private void OnAmmoChanged(int oldValue, int newValue)
     {
+        Debug.Log($"[PlayerUI] OnAmmoChanged: {oldValue} -> {newValue}, Text exists: {_ammoText != null}");
+
         if (_ammoText != null)
         {
             _ammoText.text = $"Ammo: {newValue}";

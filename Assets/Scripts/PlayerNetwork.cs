@@ -8,6 +8,7 @@ using UnityEngine;
 public class PlayerNetwork : NetworkBehaviour
 {
     [SerializeField] private Material pinkMat;
+    [SerializeField] private Canvas canvas;
 
     public NetworkVariable<FixedString32Bytes> Nickname = new(
         default,
@@ -151,8 +152,19 @@ public class PlayerNetwork : NetworkBehaviour
     {
         Debug.Log($"[Server] Player {Nickname.Value} died. Respawning in 5 seconds...");
 
-        // Ждём 5 секунд (модель остаётся чёрной всё это время)
-        yield return new WaitForSeconds(5f);
+        // 0-2 сек: чёрный цвет уже установлен через OnIsAliveChanged
+
+        // Ждём 2 секунды
+        yield return new WaitForSeconds(2f);
+
+        // Скрываем модель на всех клиентах
+        HideModelClientRpc(true);
+
+        // Ждём ещё 6 секунд
+        yield return new WaitForSeconds(6f);
+
+        // Показываем модель
+        HideModelClientRpc(false);
 
         // Телепортируем
         if (IsServer)
@@ -166,6 +178,17 @@ public class PlayerNetwork : NetworkBehaviour
         IsAlive.Value = true;
 
         Debug.Log($"[Server] Player {Nickname.Value} respawned at {transform.position}");
+    }
+
+    [ClientRpc]
+    private void HideModelClientRpc(bool hide)
+    {
+        Renderer renderer = GetComponent<Renderer>();
+        if (renderer != null)
+        {
+            renderer.enabled = !hide;
+        }
+        canvas.enabled = !hide;
     }
 
     private void OnIsAliveChanged(bool prev, bool next)

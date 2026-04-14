@@ -17,7 +17,7 @@ public class HealthPickup : NetworkBehaviour
 
     private void Update()
     {
-        // Визуальное вращение (только для красоты)
+        // Визуальное вращение
         transform.Rotate(Vector3.up, _rotationSpeed * Time.deltaTime);
     }
 

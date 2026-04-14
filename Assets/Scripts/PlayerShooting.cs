@@ -105,7 +105,7 @@ public class PlayerShooting : NetworkBehaviour
         }
     }
 
-    // Метод для восстановления патронов (можно использовать для аптечек патронов в будущем)
+    // Метод для восстановления патронов
     public void AddAmmo(int amount)
     {
         if (!IsServer) return;

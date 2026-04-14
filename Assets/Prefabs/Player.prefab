@@ -195,14 +195,14 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 70
-  m_fontSizeBase: 70
+  m_fontSize: 45
+  m_fontSizeBase: 45
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 1
-  m_HorizontalAlignment: 2
+  m_HorizontalAlignment: 1
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
@@ -234,7 +234,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: -177.85938, w: 0}
+  m_margin: {x: 0, y: 0, z: -394.71484, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -283,6 +283,7 @@ GameObject:
   - component: {fileID: 8117855050473728385}
   - component: {fileID: 4643841941869625566}
   - component: {fileID: 7600344003495063765}
+  - component: {fileID: 1073396879844144265}
   m_Layer: 0
   m_Name: Canvas
   m_TagString: Untagged
@@ -374,6 +375,21 @@ MonoBehaviour:
   m_BlockingMask:
     serializedVersion: 2
     m_Bits: 4294967295
+--- !u!114 &1073396879844144265
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4553439043189850268}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a273ed317fe29c4cb1d5c4edb8cc734, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerUI
+  ShowTopMostFoldoutHeaderGroup: 1
+  _ammoText: {fileID: 8291295997592382881}
+  _respawnTimerText: {fileID: 3685224053588879272}
 --- !u!1 &5332833827901396125
 GameObject:
   m_ObjectHideFlags: 0
@@ -397,7 +413,6 @@ GameObject:
   - component: {fileID: 523068957596996400}
   - component: {fileID: 2999387969189220786}
   - component: {fileID: 784415802425423584}
-  - component: {fileID: 6156828971301171654}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -558,6 +573,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerNetwork
   ShowTopMostFoldoutHeaderGroup: 1
   pinkMat: {fileID: 2100000, guid: 5f0d4440135b7624ba0e74db298e0600, type: 2}
+  canvas: {fileID: 8117855050473728385}
   Nickname:
     UpdateTraits:
       MinSecondsBetweenUpdates: 0
@@ -765,21 +781,6 @@ MonoBehaviour:
       MinSecondsBetweenUpdates: 0
       MaxSecondsBetweenUpdates: 0
     m_InternalValue: 10
---- !u!114 &6156828971301171654
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5332833827901396125}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8a273ed317fe29c4cb1d5c4edb8cc734, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerUI
-  ShowTopMostFoldoutHeaderGroup: 1
-  _ammoText: {fileID: 8291295997592382881}
-  _respawnTimerText: {fileID: 3685224053588879272}
 --- !u!1 &5677417317043060541
 GameObject:
   m_ObjectHideFlags: 0
@@ -879,7 +880,7 @@ MonoBehaviour:
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 1
-  m_HorizontalAlignment: 2
+  m_HorizontalAlignment: 1
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
