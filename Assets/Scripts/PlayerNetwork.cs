@@ -8,7 +8,7 @@ using UnityEngine;
 public class PlayerNetwork : NetworkBehaviour
 {
     [SerializeField] private Material pinkMat;
-    [SerializeField] private Canvas canvas;
+    [SerializeField] private GameObject canvas;
 
     public NetworkVariable<FixedString32Bytes> Nickname = new(
         default,
@@ -161,16 +161,18 @@ public class PlayerNetwork : NetworkBehaviour
         HideModelClientRpc(true);
 
         // Ждём ещё 6 секунд
-        yield return new WaitForSeconds(6f);
-
-        // Показываем модель
-        HideModelClientRpc(false);
+        yield return new WaitForSeconds(3f);
 
         // Телепортируем
         if (IsServer)
         {
             TeleportToRandomSpawnPoint();
         }
+
+        yield return new WaitForSeconds(3f);
+
+        // Показываем модель
+        HideModelClientRpc(false);
 
         yield return null;
 
@@ -188,7 +190,7 @@ public class PlayerNetwork : NetworkBehaviour
         {
             renderer.enabled = !hide;
         }
-        canvas.enabled = !hide;
+        canvas.SetActive(!hide);
     }
 
     private void OnIsAliveChanged(bool prev, bool next)

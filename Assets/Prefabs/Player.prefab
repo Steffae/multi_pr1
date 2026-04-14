@@ -530,7 +530,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 2598712518
+  GlobalObjectIdHash: 40136089
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -573,7 +573,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerNetwork
   ShowTopMostFoldoutHeaderGroup: 1
   pinkMat: {fileID: 2100000, guid: 5f0d4440135b7624ba0e74db298e0600, type: 2}
-  canvas: {fileID: 8117855050473728385}
+  canvas: {fileID: 4553439043189850268}
   Nickname:
     UpdateTraits:
       MinSecondsBetweenUpdates: 0

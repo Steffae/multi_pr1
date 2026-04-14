@@ -9,6 +9,8 @@
     "com.unity.multiplayer.playmode": "2.0.2",
     "com.unity.multiplayer.tools": "2.2.8",
     "com.unity.netcode.gameobjects": "2.11.0",
+    "com.unity.nuget.mono-cecil": "1.11.6",
+    "com.unity.nuget.newtonsoft-json": "3.2.2",
     "com.unity.render-pipelines.universal": "17.3.0",
     "com.unity.services.multiplayer": "2.0.0",
     "com.unity.test-framework": "1.6.0",
