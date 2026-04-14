@@ -1,50 +1,207 @@
+using System.Collections;
+using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Netcode;
+using Unity.Netcode.Components;
 using UnityEngine;
 
 public class PlayerNetwork : NetworkBehaviour
 {
-    // Ник должен быть виден всем клиентам, но менять его может только сервер.
+    [SerializeField] private Material pinkMat;
+
     public NetworkVariable<FixedString32Bytes> Nickname = new(
         default,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
 
-    // HP тоже читает каждый клиент, но изменяется только на сервере.
     public NetworkVariable<int> HP = new(
         100,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
 
+    public NetworkVariable<bool> IsAlive = new(
+        true,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
+
+    private static List<Transform> _spawnPoints = new List<Transform>();
+    private NetworkTransform _networkTransform;
+
+    private void Awake()
+    {
+        _networkTransform = GetComponent<NetworkTransform>();
+    }
+
     public override void OnNetworkSpawn()
     {
-        Renderer renderer = GetComponent<Renderer>();
-        // Случайная позиция при спавне (только для сервера)
-        if (NetworkObjectId==1)
+        // Собираем точки спавна один раз
+        if (_spawnPoints.Count == 0)
         {
-            Vector3 randomPos = new Vector3(Random.Range(1f, 5f), 1.1f, Random.Range(1f, 5f));
-            transform.position = randomPos;
-            renderer.material.color = Color.pink;
-            transform.rotation = Quaternion.Euler(0, 180, 0);
+            GameObject[] spawnObjects = GameObject.FindGameObjectsWithTag("SpawnPoint");
+            foreach (GameObject obj in spawnObjects)
+            {
+                _spawnPoints.Add(obj.transform);
+            }
+
+            if (_spawnPoints.Count == 0)
+            {
+                Debug.LogWarning("[PlayerNetwork] No spawn points found with tag 'SpawnPoint'.");
+            }
         }
+
+        // Телепортируем только на сервере
+        if (IsServer)
+        {
+            StartCoroutine(DelayedInitialTeleport());
+        }
+
+        SetPlayerColor(true);
+
+        HP.OnValueChanged += OnHpChanged;
+        IsAlive.OnValueChanged += OnIsAliveChanged;
 
         if (IsOwner)
         {
-            // Только владелец отправляет на сервер свой локально введенный ник.
             SubmitNicknameServerRpc(ConnectionUI.PlayerNickname);
         }
     }
 
-#pragma warning disable CS0618 // Тип или член устарел
+    private IEnumerator DelayedInitialTeleport()
+    {
+        yield return null;
+        TeleportToRandomSpawnPoint();
+    }
+
+    private void TeleportToRandomSpawnPoint()
+    {
+        Vector3 newPosition;
+
+        if (_spawnPoints.Count > 0)
+        {
+            int idx = Random.Range(0, _spawnPoints.Count);
+            newPosition = _spawnPoints[idx].position;
+        }
+        else
+        {
+            newPosition = new Vector3(Random.Range(1f, 5f), 1.5f, Random.Range(1f, 5f));
+        }
+
+        // Применяем телепортацию локально (для хоста)
+        ApplyTeleport(newPosition);
+
+        // Отправляем RPC клиентам
+        TeleportClientRpc(newPosition);
+
+        Debug.Log($"[Server] Teleported player to {newPosition}");
+    }
+
+    private void ApplyTeleport(Vector3 newPosition)
+    {
+        if (_networkTransform != null)
+        {
+            _networkTransform.enabled = false;
+        }
+
+        transform.position = newPosition;
+
+        StartCoroutine(ReenableNetworkTransform());
+    }
+
+    private IEnumerator ReenableNetworkTransform()
+    {
+        yield return null;
+        if (_networkTransform != null)
+        {
+            _networkTransform.enabled = true;
+        }
+    }
+
+    [ClientRpc]
+    private void TeleportClientRpc(Vector3 newPosition)
+    {
+        // Применяем только для чистых клиентов (не сервер)
+        if (!IsServer)
+        {
+            ApplyTeleport(newPosition);
+            Debug.Log($"[Client] Teleported to {newPosition}");
+        }
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        HP.OnValueChanged -= OnHpChanged;
+        IsAlive.OnValueChanged -= OnIsAliveChanged;
+    }
+
+    private void OnHpChanged(int prev, int next)
+    {
+        if (!IsServer) return;
+
+        if (next <= 0 && IsAlive.Value)
+        {
+            IsAlive.Value = false;
+            StartCoroutine(RespawnRoutine());
+        }
+    }
+
+    private IEnumerator RespawnRoutine()
+    {
+        Debug.Log($"[Server] Player {Nickname.Value} died. Respawning in 5 seconds...");
+
+        // Ждём 5 секунд (модель остаётся чёрной всё это время)
+        yield return new WaitForSeconds(5f);
+
+        // Телепортируем
+        if (IsServer)
+        {
+            TeleportToRandomSpawnPoint();
+        }
+
+        yield return null;
+
+        HP.Value = 100;
+        IsAlive.Value = true;
+
+        Debug.Log($"[Server] Player {Nickname.Value} respawned at {transform.position}");
+    }
+
+    private void OnIsAliveChanged(bool prev, bool next)
+    {
+        SetPlayerColor(next);
+
+        Collider col = GetComponent<Collider>();
+        if (col != null)
+        {
+            col.enabled = next;
+        }
+    }
+
+    private void SetPlayerColor(bool isAlive)
+    {
+        Renderer renderer = GetComponent<Renderer>();
+        if (renderer == null) return;
+
+        if (!isAlive)
+        {
+            renderer.material.color = Color.black;
+            return;
+        }
+
+        if (OwnerClientId == 0)
+            renderer.material.color = Color.pink;
+        else
+            renderer.material = pinkMat;
+    }
+
+#pragma warning disable CS0618
     [ServerRpc(RequireOwnership = false)]
-#pragma warning restore CS0618 // Тип или член устарел
+#pragma warning restore CS0618
     private void SubmitNicknameServerRpc(string nickname)
     {
-        // Сервер нормализует ник и записывает итоговое значение в NetworkVariable.
         string safeValue = string.IsNullOrWhiteSpace(nickname) ? $"Player_{OwnerClientId}" : nickname.Trim();
         Nickname.Value = safeValue;
     }
-
 }

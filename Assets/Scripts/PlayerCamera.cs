@@ -3,21 +3,26 @@ using UnityEngine;
 
 public class PlayerCamera : NetworkBehaviour
 {
-    [SerializeField] private Camera _playerCamera;
+    [SerializeField] private Vector3 _offset = new(0f, 4.5f, -6f);
+    [SerializeField] private AudioListener audioListener;
+
+    private Camera _cam;
 
     public override void OnNetworkSpawn()
     {
-        // Включаем камеру только для локального игрока
-        if (_playerCamera != null)
+        if (!IsOwner)
         {
-            _playerCamera.enabled = IsOwner;
-
-            // Отключаем Audio Listener у не-владельцев
-            AudioListener audioListener = _playerCamera.GetComponent<AudioListener>();
-            if (audioListener != null)
-            {
-                audioListener.enabled = IsOwner;
-            }
+            enabled = false;
+            audioListener.enabled = false;
+            return;
         }
+        _cam = Camera.main;
+    }
+
+    private void LateUpdate()
+    {
+        if (_cam == null) return;
+        _cam.transform.position = transform.position + _offset;
+        _cam.transform.LookAt(transform.position);
     }
 }
